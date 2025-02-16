@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Your Property on GALA</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* ... (All your CSS styles, unchanged) ... */
+        /* Reset and Basic Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f7f7f7;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            flex-grow: 1;
+        }
+
+        /* Header Styles */
+        .header {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header .back-button {
+            margin-right: 16px;
+            cursor: pointer;
+            color: #007AFF;
+            border: none;
+            background: none;
+            font-size: 24px;
+        }
+
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        /* Progress Bar (Optional) */
+        .progress-bar {
+            height: 4px;
+            background-color: #ddd;
+            margin-bottom: 20px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #007AFF;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+
+        /* Category Selection */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background-color: white;
+        }
+
+        .category-item.selected {
+            border-color: #007AFF;
+            box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
+        }
+
+
+        .category-item i {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .category-item span {
+            word-wrap: break-word;
+        }
+
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: #007AFF;
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.25);
+            outline: none;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+
+        /* Media Upload */
+        .media-upload {
+            margin-bottom: 20px;
+        }
+
+        .image-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .image-upload-item {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 100%;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-upload-item.filled {
+            border: 2px solid #ddd;
+        }
+
+        .image-upload-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-upload-item .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 4px;
+            cursor: pointer;
+            display: none;
+            z-index: 10;
+        }
+
+        .image-upload-item:hover .remove-image {
+            display: block;
+        }
+
+        .video-upload-preview {
+            width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-upload-preview video {
+            width: 100%;
+            height: auto;
+            max-height: inherit;
+        }
+
+        /* Amenities */
+        .amenities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .amenity-item {
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .amenity-item input[type="checkbox"] {
+            margin-right: 8px;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .amenity-item input[type="checkbox"]:checked {
+            border-color: #007AFF;
+            background-color: #007AFF;
+        }
+
+        .amenity-item input[type="checkbox"]:checked::before {
+            content: '\2713';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+        }
+
+
+        /* Pricing and Availability */
+        .price-input {
+            display: flex;
+            align-items: center;
+        }
+
+        .price-input span {
+            margin-right: 8px;
+            font-weight: 500;
+        }
+
+        .availability-calendar {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* Map */
+        .map-container {
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+
+        /* Preview and Submit */
+        .preview-section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .preview-section h2 {
+            margin-bottom: 10px;
+        }
+
+        .video-preview-section {
+            margin-top: 15px;
+        }
+
+        .submit-button {
+            background-color: #007AFF;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s ease;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .submit-button.disabled {
+            background-color: #ccc;
+            /* Or any disabled state color */
+            cursor: not-allowed;
+        }
+
+        .submit-button:hover:not(.disabled) {
+            background-color: #0056b3;
+        }
+
+        /* Terms and Conditions */
+        .terms-conditions {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .terms-conditions input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .terms-conditions label {
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        /* Confirmation Popup */
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .popup-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .popup-content p {
+            margin-bottom: 15px;
+
+        }
+
+        .popup-content button {
+            margin: 5px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .popup-content button.view-listing {
+            background-color: #007AFF;
+            color: white;
+        }
+
+        .popup-content button.dashboard {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+
+        /* Floating Help Button */
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+        }
+
+        .help-button:focus {
+            outline: none;
+        }
+
+        /*  Spinner */
+        .spinner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #007AFF;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* YouTube Embed Styles */
+        .youtube-embed-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .youtube-embed-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <button class="back-button material-icons" onclick="goBack()">arrow_back</button>
+        <h1>Host a Property</h1>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-bar-fill" style="width: 0%;"></div>
+    </div>
+
+    <div class="container">
+        <!-- Property Type Selection -->
+        <div class="category-grid">
+            <div class="category-item" data-category="Condominium">
+                <i class="material-icons">apartment</i>
+                <span>Condominium</span>
+            </div>
+            <div class="category-item" data-category="Apartment">
+                <i class="material-icons">home</i>
+                <span>Apartment</span>
+            </div>
+            <div class="category-item" data-category="Hotel">
+                <i class="material-icons">hotel</i>
+                <span>Hotel</span>
+            </div>
+            <div class="category-item" data-category="Resorts">
+                <i class="material-icons">beach_access</i>
+                <span>Resorts</span>
+            </div>
+            <div class="category-item" data-category="Townhouses">
+                <i class="material-icons">location_city</i>
+                <span>Townhouses</span>
+            </div>
+            <div class="category-item" data-category="Recreations">
+                <i class="material-icons">sports_esports</i>
+                <span>Recreations</span>
+            </div>
+            <div class="category-item" data-category="Adventures">
+                <i class="material-icons">explore</i>
+                <span>Adventures</span>
+            </div>
+        </div>
+
+
+        <!-- Property Details Form -->
+        <form id="propertyForm">
+            <div class="form-group">
+                <label for="propertyName">Property Name</label>
+                <input type="text" id="propertyName" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Address / Location</label>
+                <input type="text" id="address" class="form-control" placeholder="Start typing to search..." required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Detailed Description</label>
+                <textarea id="description" class="form-control" maxlength="500" rows="5"></textarea>
+                <small>Max 500 characters</small>
+            </div>
+
+            <!-- Media Upload -->
+            <div class="media-upload">
+                <label>Images (Up to 10, 1:1 Ratio)</label>
+                <div class="image-upload-grid">
+                    <input type="file" id="imageUpload" accept="image/*" multiple style="display: none;">
+                    <label for="imageUpload" class="image-upload-item">
+                        <i class="material-icons">add_a_photo</i>
+                    </label>
+                    <!-- Image previews will be added here dynamically -->
+                </div>
+            </div>
+
+            <div class="media-upload">
+                <label for="videoUpload">Video (1 Portrait Video, Max 60 sec)</label>
+                <input type="file" id="videoUpload" accept="video/*">
+                <div class="video-upload-preview">
+                    <!-- Video preview will be added here -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="youtubeUrl">YouTube URL (Optional)</label>
+                <input type="url" id="youtubeUrl" class="form-control" placeholder="Paste YouTube URL here">
+            </div>
+
+            <!-- Amenities Selection -->
+            <div class="form-group">
+                <label>Amenities</label>
+                <div class="amenities-grid">
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="WiFi"> WiFi
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="Parking"> Parking
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="Air Conditioning"> Air Conditioning
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="Kitchen"> Kitchen
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="Pool"> Pool
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="Gym"> Gym
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="Pet Friendly"> Pet Friendly
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="24/7 Security"> 24/7 Security
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="Smart TV"> Smart TV
+                    </label>
+                    <label class="amenity-item">
+                        <input type="checkbox" name="amenity" value="Laundry Services"> Laundry Services
+                    </label>
+
+                </div>
+            </div>
+
+            <!-- Pricing & Availability -->
+            <div class="form-group">
+                <label for="pricePerNight">Price per Night (PHP)</label>
+                <div class="price-input">
+                    <span>₱</span>
+                    <input type="number" id="pricePerNight" class="form-control" min="0" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="weeklyDiscount">Discount for Weekly Stays (%)</label>
+                <input type="number" id="weeklyDiscount" class="form-control" min="0" max="100" step="1">
+            </div>
+
+            <div class="form-group">
+                <label for="monthlyDiscount">Discount for Monthly Stays (%)</label>
+                <input type="number" id="monthlyDiscount" class="form-control" min="0" max="100" step="1">
+            </div>
+
+            <div class="form-group">
+                <label>Availability</label>
+                <input type="text" id="availability" class="form-control" placeholder="Select dates">
+            </div>
+
+            <!-- Map Location -->
+            <div class="form-group">
+                <label>Map Location</label>
+                <div class="map-container" id="map">
+                    <!-- Google Map will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="terms-conditions">
+                <input type="checkbox" id="termsCheckbox">
+                <label for="termsCheckbox">I agree to the Terms and Conditions</label>
+            </div>
+
+            <!-- Preview & Submission -->
+            <div class="preview-section">
+                <h2>Preview</h2>
+                <div id="previewContent">
+                    <!-- Preview content will be generated here -->
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button disabled" id="submitButton">List My Property</button>
+        </form>
+    </div>
+
+    <!-- Confirmation Popup -->
+    <div class="popup" id="confirmationPopup">
+        <div class="popup-content">
+            <p>Your property has been submitted for review!</p>
+            <button class="view-listing" onclick="viewListing()">View Listing</button>
+            <button class="dashboard" onclick="goToDashboard()">Return to Dashboard</button>
+        </div>
+    </div>
+
+    <!--  Spinner -->
+    <div class="spinner-container" id="spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Floating Help Button -->
+    <button class="help-button" onclick="showHelp()">?</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        let selectedCategory = null;
+        let uploadedImages = [];
+        let uploadedVideo = null;
+        let currentProgress = 0;
+        let map;  // Global map variable
+        let isTermsAccepted = false;  // State for terms
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Category Selection
+            const categoryItems = document.querySelectorAll('.category-item');
+            categoryItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    categoryItems.forEach(c => c.classList.remove('selected'));
+                    item.classList.add('selected');
+                    selectedCategory = item.dataset.category;
+                    updateProgress(15);
+                    autoSave();
+                });
+            });
+
+            // Image Upload
+            const imageUpload = document.getElementById('imageUpload');
+            const imageUploadGrid = document.querySelector('.image-upload-grid');
+
+            imageUpload.addEventListener('change', (event) => {
+                const files = event.target.files;
+                if (files) {
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        if (uploadedImages.length < 10 && file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                uploadedImages.push({ file, src: e.target.result });
+                                displayUploadedImages();
+                                updateProgress(30);
+                                autoSave();
+                            }
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                }
+            });
+
+            function displayUploadedImages() {
+                imageUploadGrid.innerHTML = '<label for="imageUpload" class="image-upload-item"><i class="material-icons">add_a_photo</i></label>';
+                uploadedImages.forEach((image, index) => {
+                    const imageItem = document.createElement('div');
+                    imageItem.classList.add('image-upload-item', 'filled');
+                    imageItem.innerHTML = `<img src="${image.src}" alt="Uploaded Image">
+                                            <button class="remove-image" onclick="removeImage(${index})">x</button>`;
+
+                    imageUploadGrid.appendChild(imageItem);
+                });
+            }
+
+            window.removeImage = (index) => {
+                uploadedImages.splice(index, 1);
+                displayUploadedImages();
+                autoSave();
+            };
+
+            // Video Upload
+            const videoUpload = document.getElementById('videoUpload');
+            const videoPreview = document.querySelector('.video-upload-preview');
+
+            videoUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file && file.type.startsWith('video/') && file.size <= 60 * 1024 * 1024) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (uploadedVideo) {
+                            URL.revokeObjectURL(uploadedVideo.src);
+                        }
+                        uploadedVideo = { file, src: e.target.result };
+                        videoPreview.innerHTML = `<video controls><source src="${e.target.result}" type="${file.type}"></video>`;
+                        updateProgress(45);
+                        autoSave();
+                    }
+                    reader.readAsDataURL(file);
+
+                } else {
+                    alert('Please upload a valid portrait video (max 60 seconds).');
+                    videoUpload.value = '';
+                    videoPreview.innerHTML = '';
+                }
+            });
+
+            // YouTube URL Input
+            const youtubeUrlInput = document.getElementById('youtubeUrl');
+            youtubeUrlInput.addEventListener('input', autoSave);
+
+
+            // Availability Calendar - Flatpickr
+            flatpickr("#availability", {
+                mode: "multiple",
+                dateFormat: "Y-m-d",
+                // Add any other flatpickr options you want
+                onChange: function (selectedDates, dateStr, instance) {
+                    // Update preview when dates are selected
+                    autoSave();
+                }
+            });
+
+            // Terms and Conditions Toggle
+            const termsCheckbox = document.getElementById('termsCheckbox');
+            const submitButton = document.getElementById('submitButton');
+
+            termsCheckbox.addEventListener('change', () => {
+                isTermsAccepted = termsCheckbox.checked;
+                updateSubmitButtonState();
+            });
+
+            // Form Submission
+            const propertyForm = document.getElementById('propertyForm');
+            propertyForm.addEventListener('submit', (event) => {
+                event.preventDefault(); // Prevent default form submission
+                submitForm(); // Call the submitForm function
+            });
+
+            // Auto-save (every 5 seconds)
+            setInterval(autoSave, 5000);
+
+            loadSavedData(); // load at start
+            initMap(); // Initialize Map after the DOM loads
+
+        });
+
+        function updateSubmitButtonState() {
+            const submitButton = document.getElementById('submitButton');
+            if (isTermsAccepted && selectedCategory) {
+                submitButton.classList.remove('disabled');
+                submitButton.disabled = false;
+            } else {
+                submitButton.classList.add('disabled');
+                submitButton.disabled = true;
+            }
+        }
+
+        function autoSave() {
+            const formData = {
+                category: selectedCategory,
+                propertyName: document.getElementById('propertyName').value,
+                address: document.getElementById('address').value,
+                description: document.getElementById('description').value,
+                images: uploadedImages,
+                video: uploadedVideo ? { src: uploadedVideo.src, type: 'uploaded' } : null, // Store video type
+                youtubeUrl: document.getElementById('youtubeUrl').value,
+                amenities: Array.from(document.querySelectorAll('input[name="amenity"]:checked')).map(cb => cb.value),
+                pricePerNight: document.getElementById('pricePerNight').value,
+                weeklyDiscount: document.getElementById('weeklyDiscount').value,
+                monthlyDiscount: document.getElementById('monthlyDiscount').value,
+                availability: document.getElementById('availability').value,
+                //mapLocation: ...
+            };
+
+            localStorage.setItem('propertyListingData', JSON.stringify(formData));
+            console.log('Auto-saved data:', formData);
+            generatePreview();
+        }
+
+
+        function loadSavedData() {
+            const savedData = localStorage.getItem('propertyListingData');
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+
+                // Restore category
+                if (formData.category) {
+                    selectedCategory = formData.category;
+                    document.querySelectorAll('.category-item').forEach(item => {
+                        item.classList.remove('selected');
+                        if (item.dataset.category === selectedCategory) {
+                            item.classList.add('selected');
+                        }
+                    });
+                }
+
+                // Restore form fields
+                document.getElementById('propertyName').value = formData.propertyName || '';
+                document.getElementById('address').value = formData.address || '';
+                document.getElementById('description').value = formData.description || '';
+
+                // Restore images
+                uploadedImages = formData.images || [];
+                displayUploadedImages();
+
+
+                // Restore video (preview)
+                if (formData.video && formData.video.src) {
+                    uploadedVideo = formData.video;
+                    document.querySelector('.video-upload-preview').innerHTML = `<video controls><source src="${formData.video.src}" type="video/mp4"></video>`;
+                }
+
+                // Restore YouTube URL
+                document.getElementById('youtubeUrl').value = formData.youtubeUrl || '';
+
+                // Restore amenities
+                if (formData.amenities) {
+                    document.querySelectorAll('input[name="amenity"]').forEach(checkbox => {
+                        checkbox.checked = formData.amenities.includes(checkbox.value);
+                    });
+                }
+
+
+                document.getElementById('pricePerNight').value = formData.pricePerNight || '';
+                document.getElementById('weeklyDiscount').value = formData.weeklyDiscount || '';
+                document.getElementById('monthlyDiscount').value = formData.monthlyDiscount || '';
+                document.getElementById('availability').value = formData.availability || '';
+
+                // Restore map location after map is initialized
+                if (formData.mapLocation && map) {
+                    map.setCenter(new google.maps.LatLng(formData.mapLocation.lat, formData.mapLocation.lng));
+                    // Optionally update marker position if you have one
+                }
+
+                // Restore availability dates for flatpickr, check flatpickr docs for the param
+                if (formData.availability) {
+                    try {
+                        flatpickr("#availability").setDate(formData.availability.split(",")); // Assuming dates are comma separated
+                    } catch (e) {
+                        console.error("Error restoring flatpickr dates:", e);
+                    }
+                }
+                updateSubmitButtonState(); //Ensure List my property gets updated
+            }
+        }
+
+
+        function updateProgress(progress) {
+            currentProgress = progress;
+            document.querySelector('.progress-bar-fill').style.width = `${currentProgress}%`;
+        }
+
+        function generatePreview() {
+            let previewHTML = '';
+
+            previewHTML += `<h3>${document.getElementById('propertyName').value || 'Property Name'}</h3>`;
+            previewHTML += `<p><strong>Address:</strong> ${document.getElementById('address').value || 'N/A'}</p>`;
+            previewHTML += `<p><strong>Description:</strong> ${document.getElementById('description').value || 'No description provided.'}</p>`;
+
+            // Preview images
+            if (uploadedImages.length > 0) {
+                previewHTML += `<p><strong>Images:</strong></p>`;
+                previewHTML += `<div style="display: flex; flex-wrap: wrap; gap: 10px;">`; // Inline style
+                uploadedImages.forEach(image => {
+                    previewHTML += `<img src="${image.src}" alt="Preview Image" style="width: 100px; height: 100px; object-fit: cover;">`;
+                });
+                previewHTML += `</div>`;
+            }
+
+            // Preview video (uploaded or YouTube)
+            if (uploadedVideo && uploadedVideo.src) {
+                previewHTML += `<div class="video-preview-section"><strong>Video:</strong>`;
+                previewHTML += `<video controls style="max-width: 200px;"><source src="${uploadedVideo.src}" type="video/mp4"></video></div>`;
+            } else if (document.getElementById('youtubeUrl').value) {
+                const youtubeUrl = document.getElementById('youtubeUrl').value;
+                const embedUrl = getYoutubeEmbedUrl(youtubeUrl);
+                if (embedUrl) {
+                    previewHTML += `<div class="video-preview-section"><strong>Video (YouTube):</strong>`;
+                    previewHTML += `<div class="youtube-embed-container"><iframe width="560" height="315" src="${embedUrl}" frameborder="0" allowfullscreen></iframe></div></div>`;
+                } else {
+                    previewHTML += `<p><strong>Video (YouTube):</strong> Invalid YouTube URL</p>`;
+                }
+            }
+
+            const amenities = Array.from(document.querySelectorAll('input[name="amenity"]:checked')).map(cb => cb.value);
+            previewHTML += `<p><strong>Amenities:</strong> ${amenities.length > 0 ? amenities.join(', ') : 'None'}</p>`;
+
+
+            previewHTML += `<p><strong>Price per Night:</strong> ₱${document.getElementById('pricePerNight').value || '0.00'}</p>`;
+            previewHTML += `<p><strong>Weekly Discount:</strong> ${document.getElementById('weeklyDiscount').value || '0'}%</p>`;
+            previewHTML += `<p><strong>Monthly Discount:</strong> ${document.getElementById('monthlyDiscount').value || '0'}%</p>`;
+
+            previewHTML += `<p><strong>Availability:</strong> ${document.getElementById('availability').value || 'Not Selected'}</p>`;
+
+            document.getElementById('previewContent').innerHTML = previewHTML;
+        }
+
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function viewListing() {
+            // Redirect to the newly created listing page (replace with actual URL)
+            document.getElementById('confirmationPopup').style.display = 'none'; //Just closes        
+        }
+
+        function goToDashboard() {
+            // Redirect to the user's dashboard with smooth transition
+            document.            getElementById('confirmationPopup').style.display = 'none';
+            window.location.href = "host-dashboard.html";
+
+        }
+
+        function showHelp() {
+            // Display help information (e.g., a modal with FAQs or a link to support)
+            alert('Help information would be displayed here.');
+        }
+
+        function showSpinner() {
+            document.getElementById('spinner').style.display = 'flex';
+        }
+
+        function hideSpinner() {
+            document.getElementById('spinner').style.display = 'none';
+        }
+
+        // Helper function to get the YouTube embed URL from a regular YouTube URL
+        function getYoutubeEmbedUrl(url) {
+            const regExp = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = url.match(regExp);
+            if (match && match[1]) {
+                return `https://www.youtube.com/embed/${match[1]}`;
+            }
+            return null; // Return null if no match
+        }
+
+
+        // Google Maps API integration
+        function initMap() {
+
+            const mapElement = document.getElementById('map');
+            if (!mapElement) return; //If map element is not on the page, we dont run this
+
+            if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+                console.error('Google Maps API is not loaded.');
+                mapElement.innerHTML = '<p>Map could not be loaded.</p>'; //fallback for the user
+                return;
+            }
+
+            const savedData = localStorage.getItem('propertyListingData'); //try to get location
+            let initialLatLng = { lat: 14.5995, lng: 120.9842 }; // Default Manila
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+                if (formData.mapLocation) { //use saved location
+                    initialLatLng = formData.mapLocation;
+                }
+            }
+
+            map = new google.maps.Map(mapElement, { //creates the map
+                center: initialLatLng,
+                zoom: 13
+            });
+
+            const marker = new google.maps.Marker({ //creates the marker
+                position: initialLatLng,
+                map: map,
+                draggable: true  // Allow the marker to be dragged
+            });
+
+            const autocomplete = new google.maps.places.Autocomplete( //creates autocomplete
+                document.getElementById('address'),
+                { types: ['geocode'] }  //geocode type
+            );
+
+            autocomplete.bindTo('bounds', map); //bias
+
+            // Autocomplete listener
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace(); //gets selected place
+                if (!place.geometry || !place.geometry.location) { //checks
+                    console.log("Returned place contains no geometry");
+                    return;
+                }
+
+                // Update the map and marker position based on the selected place
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);  // Zoom in
+                }
+                marker.setPosition(place.geometry.location); //sets the marker position
+                //updateSavedMapLocation(place.geometry.location);  // No longer call this, just use autoSave()
+
+
+            });
+
+            marker.addListener('dragend', (event) => { //updates map
+                const newLatLng = event.latLng;
+                map.panTo(newLatLng);
+                const geocoder = new google.maps.Geocoder();  //creates a geocoder
+                geocoder.geocode({ location: newLatLng }, (results, status) => { //geocode the coordinates
+                    if (status === 'OK' && results[0]) {
+                        document.getElementById('address').value = results[0].formatted_address;  //gets address
+                        autoSave(); //auto save here
+                    } else {
+                        console.error('Geocoder failed due to: ' + status);
+                        document.getElementById('address').value = `Lat: ${newLatLng.lat()}, Lng: ${newLatLng.lng()}`; //fallback
+                        autoSave(); //autosave here
+                    }
+                });
+            });
+
+
+        }
+
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBe9a58zaQCrBSGeWwcIVa_PnZABoH6zV4",
+            authDomain: "tudds-ccd0wn.firebaseapp.com",
+            databaseURL: "https://tudds-ccd0wn-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tudds-ccd0wn",
+            storageBucket: "tudds-ccd0wn.appspot.com",
+            messagingSenderId: "786974954352",
+            appId: "1:786974954352:web:339d9a244703877b9bb5b5",
+            measurementId: "G-01B9K2FSBQ"
+        };
+
+        // Check if firebase has already been initialized
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        const auth = firebase.auth(); // Get auth instance
+
+
+        function submitForm() {
+            if (!isTermsAccepted) {
+                alert("Please accept the Terms and Conditions to proceed.");
+                return; // Stop submission if terms aren't accepted
+            }
+
+            if (!selectedCategory) {
+                alert("Please select a property category.");
+                return; // Stop the submission if no category is selected
+            }
+
+            showSpinner();
+
+            // Get the currently signed-in user.  This is *critical* for security.
+            const user = auth.currentUser;
+            if (!user) {
+                alert("You must be logged in to list a property.");
+                hideSpinner();
+                return; // Stop if no user is logged in.
+            }
+
+            const formData = {
+                category: selectedCategory,
+                propertyName: document.getElementById('propertyName').value,
+                address: document.getElementById('address').value,
+                description: document.getElementById('description').value,
+                amenities: Array.from(document.querySelectorAll('input[name="amenity"]:checked')).map(cb => cb.value),
+                pricePerNight: parseFloat(document.getElementById('pricePerNight').value),
+                weeklyDiscount: parseInt(document.getElementById('weeklyDiscount').value) || 0,  // Default to 0
+                monthlyDiscount: parseInt(document.getElementById('monthlyDiscount').value) || 0, // Default to 0
+                availability: document.getElementById('availability').value,
+                mapLocation: {
+                    lat: map.getCenter().lat(),
+                    lng: map.getCenter().lng()
+                },
+                termsAccepted: isTermsAccepted, // Store terms acceptance
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Add a timestamp
+                userId: user.uid  // *** IMPORTANT: Store the user's UID ***
+            };
+
+
+            const imageUploadPromises = uploadedImages.map((image, index) => {
+                const imageRef = storage.ref(`galaproperty/${user.uid}/${formData.propertyName}_${Date.now()}_${index}`);
+                return imageRef.put(image.file).then(snapshot => snapshot.ref.getDownloadURL());
+            });
+
+            let videoUploadPromise = Promise.resolve(null);  // Initialize to null
+            if (uploadedVideo) {
+                const videoRef = storage.ref(`galaproperty/${user.uid}/${formData.propertyName}_${Date.now()}`);
+                videoUploadPromise = videoRef.put(uploadedVideo.file).then(snapshot => snapshot.ref.getDownloadURL());
+                formData.video = { url: null, type: 'uploaded' };  // Prepare for uploaded video
+            } else {
+                formData.video = { url: null, type: 'none' };  // Initialize in case no video
+            }
+
+
+            const youtubeUrl = document.getElementById('youtubeUrl').value;
+            if (youtubeUrl) {
+                const embedUrl = getYoutubeEmbedUrl(youtubeUrl);
+                if (embedUrl) {
+                    formData.video = { url: embedUrl, type: 'youtube' }; // Store YouTube embed URL
+                } else {
+                    //invalid url
+                    alert('Invalid Youtube URL');
+                    hideSpinner();
+                    return;
+                }
+            }
+
+
+
+            Promise.all([Promise.all(imageUploadPromises), videoUploadPromise])
+                .then(([imageUrls, videoUrl]) => { //videoUrl can be null.
+                    formData.images = imageUrls;
+                    if (formData.video.type === 'uploaded' && videoUrl) {  // Only update if uploaded
+                        formData.video.url = videoUrl;
+                    }
+
+                    return db.collection('galaproperty').add(formData); //Corrected Collection Name
+                })
+                .then((docRef) => {
+                    hideSpinner();
+                    localStorage.removeItem('propertyListingData'); //CLEAR CACHE
+                    //CHANGE HERE
+                    goToDashboard();
+                    //document.getElementById('confirmationPopup').style.display = 'flex'; // NO LONGER DISPLAY POPUP
+                    console.log("Document written with ID: ", docRef.id);
+                    // Reset form and states after successful submission
+                    resetForm();
+                })
+                .catch(error => {
+                    hideSpinner();
+                    console.error("Firestore write error:", error);
+                    alert("Failed to list property. Please check your connection and try again.");
+                });
+        }
+
+        function resetForm() {
+            document.getElementById('propertyForm').reset();
+            selectedCategory = null;
+            uploadedImages = [];
+            uploadedVideo = null;
+            currentProgress = 0;
+            isTermsAccepted = false;
+            updateProgress(0); // Reset progress bar
+            displayUploadedImages(); // Clear displayed images
+            document.querySelector('.video-upload-preview').innerHTML = '';  // Clear video preview
+            document.querySelectorAll('.category-item').forEach(item => item.classList.remove('selected')); // Clear category
+            document.getElementById('termsCheckbox').checked = false; // Uncheck Terms
+            document.getElementById('youtubeUrl').value = ''; // Clear youtube URL
+            updateSubmitButtonState(); // Update submit button
+            flatpickr("#availability").clear(); // Clear Flatpickr
+
+        }
+    </script>
+
+    <!-- Load the Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBUFtAGwnxY8BtAYlVC5Hc_5C-K7LCFdJo&libraries=places&callback=initMap">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+</body>
+
+</html>
