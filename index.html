@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gala - Philippines Getaways</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'gala-blue': '#007bff',
+                        'gala-blue-light': '#e0f2fe',
+                        'gray-150': '#f0f2f5',
+                        'accent-red': '#F44336',
+                        'dark-blue': '#00008B',
+                        'midnight-blue': '#191970',
+                    },
+                    fontFamily: {
+                        'sans': ['Helvetica', 'Arial', 'sans-serif'],
+                        'roboto': ['Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* ... (Rest of your CSS styles from previous code) ... */
+        .chip:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+            transition: background-color 0.2s ease-in-out;
+        }
+        .listing-card:hover {
+            transform: scale(1.02);
+            transition: transform 0.2s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .nav-item.active {
+            color: #007bff;
+        }
+        .nav-item:hover {
+            color: #007bff;
+            transition: color 0.2s ease-in-out;
+        }
+        .category-scroll {
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .listings-scroll {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem; /* Reduced gap */
+            overflow-y: auto;
+            max-height: 600px;
+        }
+        .listing-card {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer; /* Indicate card is clickable */
+        }
+        .listing-card img {
+            width: 100%;
+            height: 100px; /* Increased image height */
+            object-fit: cover;
+        }
+        .listing-card .text-container {
+            padding: 0.75rem; /* Reduced padding */
+        }
+        .listing-card h2 {
+            font-size: 0.8rem; /* Reduced title font size */
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 0.25rem; /* Reduced margin */
+        }
+        .listing-card p {
+            font-size: 0.7rem; /* Reduced text font size */
+            color: #4a5568;
+        }
+        .listing-card .price {
+            font-size: 0.8rem;
+            font-weight: 650;
+            color: #1a202c;
+        }
+        .listing-card .price span {
+            font-size: 0.7rem;
+            font-weight: 400;
+            color: #718096;
+        }
+        .chip {
+            padding-top: 0.5rem; /* Reduced padding */
+            padding-bottom: 0.5rem; /* Reduced padding */
+        }
+        .favorite-button {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .favorite-icon {
+            font-size: 1.25rem; /* Reduced icon size */
+            color: #718096; /* Default color */
+            transition: color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        .favorite-icon.active {
+            color: #007bff; /* Active color */
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3); /* Elevation on active */
+            transform: scale(1.1); /* Animation on active */
+        }
+        #search-input::placeholder {
+            color: rgba(107, 114, 128, 0.4); /* 40% opacity for placeholder text color-gray-500 */
+        }
+    </style>
+</head>
+<body class="bg-gray-150 font-sans">
+
+<!-- Sticky Header with Search and Categories -->
+<header class="bg-white sticky top-0 z-10 shadow-sm">
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex items-center justify-between">
+            <button class="rounded-full p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                <i class="material-icons">search</i>
+            </button>
+            <div class="relative flex-grow mx-4">
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Search Next Gala" class="block w-full p-2 pl-4 pr-10 text-sm text-gray-900 bg-gray-100 border border-gray-200 rounded-full focus:ring-gala-blue focus:border-gala-blue">
+                </div>
+            </div>
+            <a href="create.html" class="rounded-full p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                <i class="material-icons">add</i>
+            </a>
+        </div>
+    </div>
+    <!-- Category Icons Section - Moved inside header and below search -->
+    <section class="px-4 py-1"> <!-- Reduced padding-top and padding-bottom -->
+        <div class="container mx-auto">
+            <div id="category-chips-container" class="category-scroll flex space-x-2 pb-2"> <!-- Reduced space-x -->
+                <!-- Categories will be dynamically inserted here -->
+            </div>
+        </div>
+    </section>
+</header>
+
+<section class="px-4 py-4 pt-3" style="margin-top: 10px;"> <!-- Reduced padding-top and margin-top -->
+    <div class="container mx-auto">
+        <div id="listings-container" class="listings-scroll">
+            <!-- Listings will be dynamically inserted here -->
+        </div>
+    </div>
+</section>
+
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-5">
+            <button class="nav-item py-3 focus:outline-none text-center hover:bg-gray-100 group">
+                <i class="material-icons block text-xl text-gray-500 group-hover:text-gala-blue transition-colors duration-200">directions_car</i>
+                <span class="block text-xs text-gray-500 group-hover:text-gala-blue transition-colors duration-200">Gala</span>
+            </button>
+            <button class="nav-item py-3 focus:outline-none text-center hover:bg-gray-100 group">
+                <i class="material-icons block text-xl text-gray-500 group-hover:text-gala-blue transition-colors duration-200">favorite</i>
+                <span class="block text-xs text-gray-500 group-hover:text-gala-blue transition-colors duration-200">Wishlists</span>
+            </button>
+            <button class="nav-item py-3 focus:outline-none text-center hover:bg-gray-100 group">
+                <i class="material-icons block text-xl text-gray-500 group-hover:text-gala-blue transition-colors duration-200">local_fire_department</i>
+                <span class="block text-xs text-gray-500 group-hover:text-gala-blue transition-colors duration-200">Trips</span>
+            </button>
+            <button class="nav-item py-3 focus:outline-none text-center hover:bg-gray-100 group">
+                <i class="material-icons block text-xl text-gray-500 group-hover:text-gala-blue transition-colors duration-200">inbox</i>
+                <span class="block text-xs text-gray-500 group-hover:text-gala-blue transition-colors duration-200">Inbox</span>
+            </button>
+            <button class="nav-item py-3 focus:outline-none text-center hover:bg-gray-100 group">
+                <i class="material-icons block text-xl text-gray-500 group-hover:text-gala-blue transition-colors duration-200">account_circle</i>
+                <span class="block text-xs text-gray-500 group-hover:text-gala-blue transition-colors duration-200">Profile</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<script>
+    // Firebase configuration (replace with your actual config)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDTsjYZNWFfZOESP-2QQfbD7jc5fG9FJdc",
+      authDomain: "explore-malaysia-6d28d.firebaseapp.com",
+      databaseURL: "https://explore-malaysia-6d28d-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "explore-malaysia-6d28d",
+      storageBucket: "explore-malaysia-6d28d.appspot.com",
+      messagingSenderId: "869053244601",
+      appId: "1:869053244601:web:dc992cd250036d3c0be768",
+      measurementId: "G-J3SJ4HVWYP"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const fetchAndDisplayCategories = async () => {
+            const categoriesData = [
+                { id: 'all', name: 'All Properties', icon_name: 'filter_none' },
+                { id: 'c8', name: 'Condominiums', icon_name: 'apartment' },
+                { id: 'c9', name: 'Apartments', icon_name: 'location_city' },
+                { id: 'c11', name: 'Resorts', name: 'Resorts', icon_name: 'holiday_village' }, // Corrected category name to "Resorts"
+                { id: 'c10', name: 'Hotels', name: 'Hotel', icon_name: 'hotel' }, // Corrected category name to "Hotels" and filter to "Hotel"
+                { id: 'c12', name: 'Island', icon_name: 'landscape' },
+                { id: 'c13', name: 'Adventures', icon_name: 'hiking' }, // Added Adventures category
+                { id: 'c1', name: 'Beach', icon_name: 'beach_access' },
+                { id: 'c7', name: 'Mountain', icon_name: 'terrain' },
+            ];
+
+            const categoriesContainer = document.getElementById('category-chips-container');
+            categoriesContainer.classList.remove('grid', 'grid-cols-4', 'sm:grid-cols-7', 'gap-4');
+            categoriesContainer.classList.add('category-scroll', 'flex', 'space-x-2'); // Reduced space-x
+
+            categoriesData.forEach(category => {
+                const button = document.createElement('button');
+                button.classList.add('chip', 'flex-shrink-0', 'text-sm', 'font-medium', 'text-gray-700', 'bg-white', 'rounded-full', 'px-3', 'py-1', 'hover:bg-gray-100', 'focus:outline-none', 'focus:ring-2', 'focus:ring-gala-blue', 'focus:ring-opacity-50', 'transition-colors', 'duration-200', 'flex', 'items-center', 'space-x-2'); // Reduced py
+                button.dataset.categoryId = category.id;
+                button.dataset.categoryName = category.name;
+                button.innerHTML = `<i class="material-icons align-middle text-base text-gray-500">${category.icon_name}</i> <span class="block text-sm text-gray-700">${category.name}</span>`;
+                categoriesContainer.appendChild(button);
+            });
+        };
+
+        const fetchAndDisplayListings = async (categoryFilter = null, searchQuery = null) => {
+            const listingsContainer = document.getElementById('listings-container');
+            listingsContainer.innerHTML = ''; // Clear existing listings
+
+            let query = db.collection('property').orderBy('timestamp', 'desc');
+
+            if (categoryFilter && categoryFilter !== 'all') {
+                query = query.where('propertyType', '==', categoryFilter);
+            }
+
+            if (searchQuery) {
+                const searchText = searchQuery.toLowerCase();
+                query = query.where('OR', [
+                    { propertyName_lowercase: '>=', propertyName_lowercase: searchText },
+                    { propertyName_lowercase: '<', propertyName_lowercase: searchText + '\uf8ff' },
+                    { locationName_lowercase: '>=', locationName_lowercase: searchText },
+                    { locationName_lowercase: '<', locationName_lowercase: searchText + '\uf8ff' }
+                ]);
+            }
+
+
+            const snapshot = await query.get();
+            const properties = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            properties.forEach((listing) => {
+                const listingCard = document.createElement('div');
+                listingCard.classList.add('listing-card', 'bg-white', 'rounded-lg', 'shadow-sm', 'overflow-hidden', 'hover:shadow-md', 'transition-shadow', 'duration-200', 'flex', 'flex-col');
+
+                const imageUrl = listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls[0] : 'assets/images/property/placeholder.jpeg'; // Use first image or placeholder
+
+                listingCard.innerHTML = `
+                    <div>
+                        <div class="relative aspect-w-1 aspect-h-1">
+                            <img src="${imageUrl}" alt="${listing.locationName}" class="w-full h-full object-cover rounded-t-lg">
+                            <button class="absolute top-1 right-1 p-1 bg-transparent rounded-full favorite-button focus:outline-none">
+                                <i class="material-icons favorite-icon">favorite_border</i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-container">
+                        <h2 class="font-semibold text-base text-gray-900 truncate">${listing.locationName}</h2>
+                        <p class="text-xs text-gray-700">${listing.propertyType}</p>
+                        <p class="mt-1">
+                            <span class="font-bold text-sm text-black">₱${listing.pricePerNight.toLocaleString()}</span>
+                            <span class="text-xs font-normal text-gray-700">night</span>
+                        </p>
+                    </div>
+                `;
+
+                listingCard.addEventListener('click', () => {
+                    // Redirect to reels.html on card click/tap
+                    window.location.href = 'reels.html';
+                });
+
+                const favoriteButton = listingCard.querySelector('.favorite-button');
+                const favoriteIcon = listingCard.querySelector('.favorite-icon');
+
+                favoriteButton.addEventListener('click', (event) => {
+                    event.stopPropagation(); // Prevent card click when favorite is clicked
+                    favoriteIcon.classList.toggle('active');
+                    if (favoriteIcon.classList.contains('active')) {
+                        favoriteIcon.innerText = 'favorite'; // Filled heart
+                    } else {
+                        favoriteIcon.innerText = 'favorite_border'; // Bordered heart
+                    }
+                });
+
+
+                listingsContainer.appendChild(listingCard);
+            });
+        };
+
+        const setupCategoryFiltering = () => {
+            const categoriesContainer = document.getElementById('category-chips-container');
+            categoriesContainer.addEventListener('click', (event) => {
+                if (event.target.closest('.chip')) {
+                    const chip = event.target.closest('.chip');
+                    const categoryId = chip.dataset.categoryId;
+                    fetchAndDisplayListings(categoryId);
+                }
+            });
+        };
+
+        const setupSearch = () => {
+            const searchInput = document.getElementById('search-input');
+            let debounceTimer;
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    const query = searchInput.value.trim();
+                    fetchAndDisplayListings(null, query); // Filter listings by search query
+                }, 300); // Debounce for 300ms
+            });
+        };
+
+
+        fetchAndDisplayCategories();
+        fetchAndDisplayListings('all'); // Initial load with all properties
+        setupCategoryFiltering();
+        setupSearch();
+    });
+</script>
+</body>
+</html>
