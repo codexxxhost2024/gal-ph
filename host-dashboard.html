@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Dashboard - GALA</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Reset and Basic Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f7f7f7;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            padding: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .header i.material-icons {
+          font-size: 24px; /* Adjust size as needed */
+          cursor: pointer;
+        }
+
+        /* Summary Overview */
+        .summary-overview {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+        }
+
+        .metrics-card, .action-button {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            width: calc(50% - 10px); /* Two items per row on larger screens */
+            margin-bottom: 10px;
+        }
+        .action-button {
+             width: 100%;
+             background-color: #007AFF;
+             color: white;
+             cursor: pointer;
+             transition: background-color 0.2s ease;
+         }
+
+        .metrics-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .metrics-card p {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #007AFF;  /* GALA Blue for emphasis */
+        }
+
+        /* Property Listings Section */
+        .property-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .property-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .property-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .property-details {
+            flex-grow: 1;
+        }
+
+        .property-details h2 {
+            margin-bottom: 5px;
+        }
+
+        .property-details p {
+            margin-bottom: 8px;
+            color: #555;
+        }
+        .property-details strong {
+            margin-right: 5px;
+        }
+
+        .property-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .property-actions button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .property-actions .edit-button {
+            background-color: #007AFF;
+            color: white;
+        }
+
+        .property-actions .delete-button {
+            background-color: #FF3B30;
+            color: white;
+        }
+
+        .property-actions button:hover {
+            opacity: 0.8;
+        }
+        /* Property Status Badges */
+        .property-status {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            display: inline-block; /* Make it inline */
+            margin-left: auto;
+        }
+
+        .status-pending { background-color: #f0ad4e; }  /* Orange */
+        .status-live { background-color: #5cb85c; }   /* Green */
+        .status-rejected { background-color: #d9534f; } /* Red */
+
+        /* No Properties Message */
+        .no-properties {
+            text-align: center;
+            margin-top: 20px;
+            color: #777;
+        }
+
+          /* Spinner Styles */
+        .spinner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #007AFF;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+          /* Confirmation Dialog */
+        .confirmation-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            display: none;
+        }
+
+        .dialog-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+             max-width: 90%;
+        }
+
+        .dialog-content p {
+            margin-bottom: 20px;
+        }
+
+        .dialog-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .dialog-buttons button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .dialog-buttons .confirm-button {
+            background-color: #FF3B30; /* Red */
+            color: white;
+        }
+
+        .dialog-buttons .cancel-button {
+            background-color: #007AFF; /* Blue */
+            color: white;
+        }
+           /* Edit Property Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            display: none;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 600px;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-content .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .modal-content input[type="text"],
+        .modal-content input[type="number"],
+        .modal-content textarea,
+        .modal-content select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 45%;
+        }
+
+        .modal-buttons .update-button {
+            background-color: #007AFF;
+            color: white;
+        }
+          .modal-buttons .update-button:hover{
+              opacity: 0.8;
+          }
+
+        .modal-buttons .cancel-button {
+            background-color: #ccc;
+            color: #333;
+        }
+        .modal-buttons .cancel-button:hover{
+            opacity: 0.8;
+        }
+        /* Video Upload */
+        .video-upload {
+            margin-bottom: 20px;
+        }
+
+        .video-upload-preview {
+            width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-upload-preview video {
+            width: 100%;
+            height: auto;
+            max-height: inherit;
+        }
+
+        .video-upload input[type="text"]{
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+         .video-upload button{
+           background-color: #007AFF;
+           color: white;
+           padding: 8px 12px;
+           border: none;
+           border-radius: 4px;
+           cursor: pointer;
+           font-size: 1rem;
+           transition: background-color 0.2s ease;
+           display: block;
+           margin: 10px auto;
+          }
+         .video-upload button:hover{
+            opacity: 0.8;
+         }
+
+
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Host Dashboard</h1>
+        <i class="material-icons">menu</i>  <!-- Placeholder for hamburger menu -->
+    </div>
+
+    <div class="container">
+
+        <!-- Summary Overview -->
+        <div class="summary-overview">
+            <div class="metrics-card">
+                <h3>Total Listings</h3>
+                <p id="totalListings">0</p>
+            </div>
+            <div class="metrics-card">
+                <h3>Total Bookings</h3>
+                <p id="totalBookings">0</p>
+            </div>
+            <div class="metrics-card">
+               <h3>Earnings</h3>
+               <p id="totalEarnings">0</p>
+           </div>
+             <div class="action-button" onclick="addProperty()">Add New Property</div>
+        </div>
+
+
+        <!-- Property Listings Section -->
+        <div class="property-list" id="propertyList">
+            <!-- Property cards will be dynamically added here -->
+        </div>
+        <p class="no-properties" id="noPropertiesMessage">No properties listed yet.</p>
+    </div>
+
+      <!-- Spinner -->
+    <div class="spinner-container" id="spinner">
+        <div class="spinner"></div>
+    </div>
+
+     <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmationDialog">
+        <div class="dialog-content">
+            <p id="dialogMessage">Are you sure you want to delete this property?</p>
+            <div class="dialog-buttons">
+                <button class="confirm-button" onclick="confirmDelete()">Confirm</button>
+                <button class="cancel-button" onclick="cancelDelete()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+      <!-- Edit Property Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h2>Edit Property</h2>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editPropertyName">Property Name</label>
+                    <input type="text" id="editPropertyName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editAddress">Address</label>
+                    <input type="text" id="editAddress" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDescription">Description</label>
+                    <textarea id="editDescription" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editPricePerNight">Price per Night (PHP)</label>
+                    <input type="number" id="editPricePerNight" class="form-control" min="0" step="0.01" required>
+                </div>
+                <div class="video-upload">
+                    <label for="editVideoUpload">Upload video</label>
+                    <input type="file" id="editVideoUpload" accept="video/*">
+                    <div class="video-upload-preview">
+                    </div>
+                    <label for="editYoutubeUrl">YouTube URL</label>
+                    <input type="text" id="editYoutubeUrl" placeholder="Paste YouTube URL">
+                    <button type="button" onclick="saveVideo()">Save</button>
+                </div>
+                <!-- Add other editable fields here as needed (amenities, etc.) -->
+
+                <div class="modal-buttons">
+                    <button type="button" class="update-button" onclick="updateProperty()">Update</button>
+                    <button type="button" class="cancel-button" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+       let currentPropertyId = null; // Store the ID of the property being edited/deleted
+       let editUploadedVideo = null; //Video Data for upload on EDIT;
+       let editVideoSource = null; //Video Source for the video.
+
+          // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+            authDomain: "ces-project-f8b4e.firebaseapp.com",
+            databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ces-project-f8b4e",
+            storageBucket: "ces-project-f8b4e.firebasestorage.app",
+            messagingSenderId: "580767851656",
+            appId: "1:580767851656:web:d9113b8b64ec1ff3cdeb3d",
+            measurementId: "G-FVXFP9ZQKC"
+        };
+
+        // Check if firebase has already been initialized
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const db = firebase.firestore();
+        const storage = firebase.storage();  // Incase you wanna modify storage.
+       // Helper function to get a user's UID
+        function getUserId() {
+            const auth = firebase.auth();
+            const user = auth.currentUser;
+            return user ? user.uid : null;
+        }
+
+        function showSpinner() {
+            document.getElementById('spinner').style.display = 'flex';
+        }
+
+        function hideSpinner() {
+            document.getElementById('spinner').style.display = 'none';
+        }
+
+        // Function to display properties
+        function displayProperties(properties) {
+            const propertyList = document.getElementById('propertyList');
+            propertyList.innerHTML = ''; // Clear existing list
+
+            if (properties.length === 0) {
+                document.getElementById('noPropertiesMessage').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('noPropertiesMessage').style.display = 'none';
+            }
+
+            properties.forEach(property => {
+                const propertyCard = document.createElement('div');
+                propertyCard.classList.add('property-card');
+
+                let imageHtml = '';
+                if (property.images && property.images.length > 0) {
+                    imageHtml = `<img src="${property.images[0]}" alt="${property.propertyName}" class="property-image">`;
+                } else {
+                    imageHtml = `<img src="placeholder.jpg" alt="Placeholder" class="property-image">`; //Placeholder
+                }
+
+                // Determine status class and text
+                let statusClass = 'status-pending';
+                let statusText = 'Pending';
+
+                if (property.status === 'live') {
+                    statusClass = 'status-live';
+                    statusText = 'Live';
+                } else if (property.status === 'rejected') {
+                    statusClass = 'status-rejected';
+                    statusText = 'Rejected';
+                }
+
+                propertyCard.innerHTML = `
+                    ${imageHtml}
+                    <div class="property-details">
+                        <h2>${property.propertyName}</h2>
+                        <p><strong>Address:</strong> ${property.address}</p>
+                        <p><strong>Price:</strong> ₱${property.pricePerNight.toFixed(2)}</p>
+                        <p><strong>Description:</strong> ${property.description || 'No description provided.'}</p>
+                    </div>
+                    <div class="property-actions">
+                         <span class="property-status ${statusClass}">${statusText}</span>
+                        <button class="edit-button" onclick="openEditModal('${property.id}')">Edit</button>
+                        <button class="delete-button" onclick="openDeleteConfirmation('${property.id}')">Delete</button>
+                    </div>
+                `;
+                propertyList.appendChild(propertyCard);
+            });
+        }
+
+        // Function to fetch properties from Firestore
+       function fetchProperties() {
+            const userId = getUserId();
+             if (!userId) {
+                // Handle the case where the user isn't logged in (e.g., redirect to login)
+                console.log("User not logged in, cannot fetch properties.");
+                return; // Exit the function
+            }
+            showSpinner();
+            db.collection('properties')
+                .where('userId', '==', userId) // Filter by the logged-in user's ID
+                .orderBy('timestamp', 'desc') // Order by timestamp, newest first
+                .get()
+                .then(snapshot => {
+                    hideSpinner();
+                    const properties = [];
+                    snapshot.forEach(doc => {
+                        properties.push({ id: doc.id, ...doc.data() });
+                    });
+                    displayProperties(properties);
+                })
+                .catch(error => {
+                    hideSpinner();
+                    console.error("Error fetching properties:", error);
+                    alert("Failed to load properties. Please check your connection and try again.");
+                });
+        }
+
+         function openDeleteConfirmation(propertyId) {
+            currentPropertyId = propertyId;
+            document.getElementById('confirmationDialog').style.display = 'flex';
+        }
+
+        function cancelDelete() {
+            currentPropertyId = null;
+            document.getElementById('confirmationDialog').style.display = 'none';
+        }
+
+        function confirmDelete() {
+            if (!currentPropertyId) return;
+
+            showSpinner();
+            db.collection('properties').doc(currentPropertyId).delete()
+                .then(() => {
+                    hideSpinner();
+                    document.getElementById('confirmationDialog').style.display = 'none';
+                    fetchProperties(); // Reload properties after deletion
+                })
+                .catch(error => {
+                    hideSpinner();
+                    console.error("Error deleting property:", error);
+                    alert("Failed to delete property. Please try again.");
+                });
+
+             currentPropertyId = null; // Reset after operation
+        }
+
+         //EDIT MODAL
+        function openEditModal(propertyId) {
+            currentPropertyId = propertyId;
+            showSpinner();
+
+             // Fetch the specific property's data
+            db.collection('properties').doc(propertyId).get()
+                .then(doc => {
+                    hideSpinner();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        // Populate the form fields
+                        document.getElementById('editPropertyName').value = data.propertyName;
+                        document.getElementById('editAddress').value = data.address;
+                        document.getElementById('editDescription').value = data.description;
+                        document.getElementById('editPricePerNight').value = data.pricePerNight;
+
+                        //Video
+                        editVideoSource = data.video || null; // store here.
+                        displayEditVideo(data.video);
+                         // Add more fields as needed
+                        document.getElementById('editModal').style.display = 'flex'; //show
+
+                    } else {
+                        console.error("No such property!");
+                        alert("Property not found.");
+                    }
+
+                })
+            .catch(error => {
+                hideSpinner();
+                console.error("Error fetching property for edit:", error);
+                alert("Failed to load property data for editing. Please try again.");
+            });
+        }
+
+        function displayEditVideo(videoUrl) {
+            const videoPreview = document.querySelector(".video-upload-preview");
+            videoPreview.innerHTML = ''; // Clear existing preview
+
+            if (videoUrl) {
+                if (videoUrl.startsWith("http")) { // YouTube URL
+                    videoPreview.innerHTML = `<iframe width="100%" height="200" src="${videoUrl}" frameborder="0" allowfullscreen></iframe>`;
+                    editVideoSource = videoUrl;
+                } else { // Firebase video URL
+                    videoPreview.innerHTML = `<video controls><source src="${videoUrl}" type="video/mp4"></video>`;
+                    editVideoSource = videoUrl; //Store the firebase URL
+                }
+
+            }
+        }
+
+        // Function to update a property
+        function updateProperty() {
+            if (!currentPropertyId) return;
+
+            showSpinner();
+              // Gather updated data from the form fields
+            const updatedData = {
+                propertyName: document.getElementById('editPropertyName').value,
+                address: document.getElementById('editAddress').value,
+                description: document.getElementById('editDescription').value,
+                pricePerNight: parseFloat(document.getElementById('editPricePerNight').value),
+                  video: editVideoSource //Use new video
+              };
+
+                // Upload video if a new one was selected:
+                 if (editUploadedVideo) {
+                    const videoRef = storage.ref(`property_videos/${updatedData.propertyName}_${Date.now()}`);
+                    videoUploadPromise = videoRef.put(editUploadedVideo.file).then(snapshot => snapshot.ref.getDownloadURL())
+                      .then(downloadURL => {
+                           updatedData.video = downloadURL;
+                          // after getting URL update database.
+                      })
+                    .catch(error => {
+                        hideSpinner();
+                         console.error("Error uploading the video:", error);
+                         alert("Failed to update the video. Please try again.");
+                    });
+
+                 }
+
+                db.collection('properties').doc(currentPropertyId).update(updatedData)
+                    .then(() => {
+                        hideSpinner();
+                        closeModal();  //Close the modal
+                        fetchProperties(); // Reload the property list
+                    })
+                    .catch(error => {
+                        hideSpinner();
+                        console.error("Error updating property:", error);
+                        alert("Failed to update property. Please try again.");
+                    });
+
+        }
+        //Video for edit
+        const editVideoUpload = document.getElementById('editVideoUpload');
+        editVideoUpload.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file && file.type.startsWith('video/') && file.size <= 60 * 1024 * 1024) {
+                     editUploadedVideo = { file:file}; // Store the file data, we'll upload it later
+                    displayEditVideo(URL.createObjectURL(file));
+                } else {
+                    alert('Please upload a valid portrait video (max 60 seconds).');
+                    editVideoUpload.value = '';
+                     displayEditVideo(null);
+                }
+        });
+
+        function saveVideo() {
+            const youtubeUrl = document.getElementById('editYoutubeUrl').value;
+            if (youtubeUrl) {
+                editVideoSource = youtubeUrl;
+                displayEditVideo(youtubeUrl);
+            } else {
+                alert('Please enter a YouTube URL.');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentPropertyId = null;
+            editUploadedVideo = null;
+            editVideoSource = null;
+        }
+
+         function addProperty() {
+           window.location.href = 'host-property.html'; // Redirect to your property listing page
+         }
+
+         // Fetch properties when the page loads
+        document.addEventListener('DOMContentLoaded', fetchProperties);
+    </script>
+</body>
+
+</html>
