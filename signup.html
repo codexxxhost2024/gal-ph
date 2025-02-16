@@ -1,0 +1,281 @@
+<!-- signup.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gala - Sign Up</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Material Icons -->
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+
+  <!-- Firebase JS SDK (Adjust versions if needed) -->
+  <script src="https://www.gstatic.com/firebasejs/9.9.3/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.9.3/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.9.3/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.9.3/firebase-storage-compat.js"></script>
+
+  <style>
+    body {
+      background-color: #FFFFFF; /* White background for signup.html - Does not match the clip's BG color */
+      /* Remove any default padding or margins on body */
+      margin: 0;
+      padding: 0;
+    }
+
+    .auth-container {
+      min-height: 100vh;
+      /* Remove bg color from here - we want the body's */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gala-blue {
+      color: #03A9F4; /* Example Gala Blue (from logo) */
+    }
+
+    .gala-blue-bg {
+      background-color: #03A9F4; /* Example Gala Blue (from logo) */
+    }
+
+    /* Custom Snackbar Style */
+    .snackbar {
+      visibility: hidden; /* Hidden by default */
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 2px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1;
+      left: 50%;
+      bottom: 30px;
+      font-size: 17px;
+    }
+
+    .snackbar.show {
+      visibility: visible;
+      -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @-webkit-keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @-webkit-keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+  </style>
+</head>
+<body class="auth-container flex items-center justify-center">
+  <!-- Main container for sign-up -->
+  <div class="w-full max-w-md p-4 bg-white rounded shadow-md relative">
+    <!-- "Close" or "Back" icon -->
+    <div class="absolute top-4 left-4 cursor-pointer" onclick="goBack()">
+      <span class="material-icons">close</span>
+    </div>
+
+    <!-- Title (Logo removed) -->
+    <div class="flex flex-col items-start mb-4 mt-6">
+      <h1 class="text-xl font-bold text-gray-800">Log in or sign up to Gala</h1>
+    </div>
+
+    <!-- Subtitle / instructions -->
+    <p class="text-left text-sm text-gray-600 mb-4">
+      We’ll call or text you to confirm your number. Standard message & data rates may apply.
+    </p>
+
+    <!-- Phone region & number input -->
+    <div class="mb-4">
+      <label class="block text-gray-700 font-semibold mb-1">Country/Region</label>
+      <select
+        id="countryCode"
+        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gala-blue"
+      >
+        <!-- Example country codes -->
+        <option value="+63" selected>Philippines (+63)</option>
+        <option value="+1">United States (+1)</option>
+        <option value="+44">United Kingdom (+44)</option>
+      </select>
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-gray-700 font-semibold mb-1">Phone number</label>
+      <div class="flex">
+        <span
+          class="inline-flex items-center px-3 border border-r-0 border-gray-300 rounded-l bg-gray-50 text-gray-600"
+          id="displayCountryCode"
+        >+63</span>
+        <input
+          id="phoneNumber"
+          type="tel"
+          placeholder="9123456789"
+          class="w-full px-3 py-2 border border-gray-300 rounded-r focus:outline-none focus:ring-2 focus:ring-gala-blue"
+        />
+      </div>
+    </div>
+
+    <!-- Continue button (phone) -->
+    <button
+      onclick="requestPhoneVerification()"
+      class="w-full gala-blue-bg text-white font-semibold py-2 rounded mb-4"
+    >
+      Continue
+    </button>
+
+    <div class="flex items-center my-3">
+      <hr class="flex-grow border-t border-gray-300"/>
+      <span class="mx-2 text-gray-400">or</span>
+      <hr class="flex-grow border-t border-gray-300"/>
+    </div>
+
+    <!-- Continue with Email -->
+    <button
+      onclick="window.location.href='signup_with_email.html'"
+      class="w-full flex items-center justify-center bg-white border border-gray-300 rounded py-2 mb-2"
+    >
+      <span class="material-icons mr-2">email</span>
+      Continue with Email
+    </button>
+
+    <!-- Continue with Google -->
+    <button
+      onclick="signInWithGoogle()"
+      class="w-full flex items-center justify-center bg-white border border-gray-300 rounded py-2 mb-2"
+    >
+      <span class="material-icons mr-2">login</span>
+      Continue with Google
+    </button>
+  </div>
+
+  <!-- Hidden container for reCAPTCHA (required for Firebase Phone Auth) -->
+  <div id="recaptcha-container"></div>
+
+  <!-- Snackbar for messages -->
+  <div id="snackbar" class="snackbar"></div>
+
+  <!-- JavaScript for Firebase Auth -->
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
+      authDomain: "ces-project-f8b4e.firebaseapp.com",
+      databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ces-project-f8b4e",
+      storageBucket: "ces-project-f8b4e.firebasestorage.app",
+      messagingSenderId: "580767851656",
+      appId: "1:580767851656:web:d9113b8b64ec1ff3cdeb3d",
+      measurementId: "G-FVXFP9ZQKC"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // Update phone prefix when countryCode changes
+    const countrySelect = document.getElementById('countryCode');
+    const displayCountryCode = document.getElementById('displayCountryCode');
+    countrySelect.addEventListener('change', () => {
+      displayCountryCode.textContent = countrySelect.value;
+    });
+
+    // Set up reCAPTCHA for Phone Auth
+    let appVerifier = null;
+    window.onload = function() {
+      renderRecaptcha();
+    };
+
+    function renderRecaptcha() {
+      appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        size: 'invisible',
+        callback: function(response) {
+          // reCAPTCHA solved - proceed with phone auth
+        }
+      });
+    }
+
+    // Show Snackbar Message
+    function showSnackbar(message) {
+      const snackbar = document.getElementById("snackbar");
+      snackbar.textContent = message;
+      snackbar.className = "snackbar show";
+      setTimeout(function(){ snackbar.className = snackbar.className.replace("show", ""); }, 3000); // Hide after 3 seconds
+    }
+
+    // Phone Authentication Request
+    function requestPhoneVerification() {
+      const phone = document.getElementById('phoneNumber').value.trim();
+      const code = document.getElementById('countryCode').value;
+      const fullNumber = code + phone;
+
+      if (!phone) {
+        showSnackbar("Please enter a valid phone number!");
+        return;
+      }
+
+      firebase.auth().signInWithPhoneNumber(fullNumber, appVerifier)
+        .then((confirmationResult) => {
+          const verificationCode = prompt("Please enter the verification code sent to " + fullNumber);
+          if (!verificationCode) return;
+          return confirmationResult.confirm(verificationCode);
+        })
+        .then((result) => {
+          const user = result.user;
+          showSnackbar("Phone verified! Redirecting...");
+          // Redirect to index.html after phone verification (or perform other actions)
+          setTimeout(() => {
+            window.location.href = "index.html"; // Assuming index.html is the main page
+          }, 3000); // Wait for 3 seconds (snackbar duration) before redirecting
+        })
+        .catch((error) => {
+          showSnackbar("Error during phone auth: " + error.message);
+        });
+    }
+
+    // Google Sign-In Implementation
+    function signInWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+          // Successful sign-in; current user becomes the property owner
+          const user = result.user;
+          showSnackbar("Google sign-in successful! Redirecting...");
+          // Redirect to property-owner.html after sign in
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 3000); // Wait for 3 seconds (snackbar duration) before redirecting
+        })
+        .catch((error) => {
+          showSnackbar("Google sign-in error: " + error.message);
+        });
+    }
+
+    // Remove Apple and Facebook sign-in functions (if present)
+    // Instead, they can simply show an alert if called (but buttons are removed)
+    function signInWithApple() {
+      showSnackbar("Apple sign-in is not available.");
+    }
+    function signInWithFacebook() {
+      showSnackbar("Facebook sign-in is not available.");
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+  </script>
+</body>
+</html>
