@@ -117,6 +117,21 @@
         #search-input::placeholder {
             color: rgba(107, 114, 128, 0.4); /* 40% opacity for placeholder text color-gray-500 */
         }
+        /* Additional Style for Login/Signup Button */
+        .auth-button {
+          background-color: #fff;  /* Match the background of the header */
+          color: #007bff; /* Or your Gala blue for consistency */
+          border: 1px solid #d1d5db; /* A subtle border */
+          padding: 0.5rem 1rem;
+          border-radius: 0.375rem;
+          font-weight: 500;
+          text-decoration: none;
+          transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+
+        .auth-button:hover {
+          background-color: #f3f4f6; /* A slightly darker background on hover */
+        }
     </style>
 </head>
 <body class="bg-gray-150 font-sans">
@@ -133,9 +148,10 @@
                     <input type="text" id="search-input" placeholder="Search Next Gala" class="block w-full p-2 pl-4 pr-10 text-sm text-gray-900 bg-gray-100 border border-gray-200 rounded-full focus:ring-gala-blue focus:border-gala-blue">
                 </div>
             </div>
-            <a href="create.html" class="rounded-full p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
-                <i class="material-icons">add</i>
-            </a>
+            <!-- Auth Check and Button - Right side of the Header-->
+             <div id="auth-buttons">
+                <!-- Sign-up and Login buttons will be added here dynamically -->
+             </div>
         </div>
     </div>
     <!-- Category Icons Section - Moved inside header and below search -->
@@ -185,7 +201,7 @@
 
 <script>
     // Firebase configuration (replace with your actual config)
-     const firebaseConfig = {
+    const firebaseConfig = {
       apiKey: "AIzaSyDtNedkJo6ikNneZZdrheiWbE3Dn2B8kwQ",
       authDomain: "ces-project-f8b4e.firebaseapp.com",
       databaseURL: "https://ces-project-f8b4e-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -198,9 +214,59 @@
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
     document.addEventListener('DOMContentLoaded', () => {
+        const authButtonsContainer = document.getElementById('auth-buttons');
+
+        const updateAuthButtons = () => {
+            auth.onAuthStateChanged(user => {
+                authButtonsContainer.innerHTML = ''; // Clear existing buttons
+                if (user) {
+                    // User is signed in. Show profile or logout
+                    const profileButton = document.createElement('a');
+                    profileButton.href = '#'; // Replace with profile page link
+                    profileButton.textContent = 'Profile';
+                    profileButton.classList.add('auth-button', 'mr-2'); // Add styling classes
+                    authButtonsContainer.appendChild(profileButton);
+
+                     const logoutButton = document.createElement('button');
+                    logoutButton.textContent = 'Logout';
+                    logoutButton.classList.add('auth-button');  // Add styling classes
+
+                    logoutButton.addEventListener('click', () => {
+                        auth.signOut().then(() => {
+                            // Sign-out successful.
+                            window.location.reload(); // Refresh the page
+                        }).catch((error) => {
+                            // An error happened.
+                            console.error("Logout error:", error);
+                            alert("Logout error: " + error.message);
+                        });
+                    });
+                    authButtonsContainer.appendChild(logoutButton);
+
+
+                } else {
+                    // No user is signed in.  Show signup and login buttons.
+                    const signupButton = document.createElement('a');
+                    signupButton.href = 'signup.html';
+                    signupButton.textContent = 'Sign up';
+                    signupButton.classList.add('auth-button', 'mr-2'); // Add styling classes
+                    authButtonsContainer.appendChild(signupButton);
+
+                    const loginButton = document.createElement('a');
+                    loginButton.href = 'signup.html'; // Or your login page
+                    loginButton.textContent = 'Login';
+                    loginButton.classList.add('auth-button'); // Add styling classes
+                    authButtonsContainer.appendChild(loginButton);
+                }
+            });
+        };
+        // Call the function to update auth buttons on page load and after auth state changes
+        updateAuthButtons();
+
         const fetchAndDisplayCategories = async () => {
             const categoriesData = [
                 { id: 'all', name: 'All Properties', icon_name: 'filter_none' },
